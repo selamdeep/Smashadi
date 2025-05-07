@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adisyon Uygulaması</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f7f7f7; margin: 0; }
+    .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    input, select, button { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    button { background: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #45a049; }
+    button.delete { background: #f44336; }
+    button.delete:hover { background: #d32f2f; }
+    button.clear { background: #ff9800; }
+    button.clear:hover { background: #fb8c00; }
+    .order-list { margin-top: 20px; }
+    .order-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; align-items: center; }
+    .item-info { flex-grow: 1; }
+    .delete-btn { background: #f44336; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; margin-left: 10px; }
+    .total { font-weight: bold; text-align: right; margin-top: 15px; font-size: 18px; }
+    h2 { text-align: center; color: #333; }
+    label { display: block; margin-top: 10px; color: #555; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Adisyon Uygulaması</h2>
+    <label>Masa Numarası:</label>
+    <select id="tableNumber">
+      <option>Masa 1</option>
+      <option>Masa 2</option>
+      <option>Masa 3</option>
+      <option>Masa 4</option>
+      <option>Masa 5</option>
+    </select>
+
+    <label>Ürün Adı:</label>
+    <input type="text" id="productName" placeholder="Örn: Çay">
+
+    <label>Fiyat (₺):</label>
+    <input type="number" id="productPrice" placeholder="Örn: 15">
+
+    <button onclick="addItem()">Ekle</button>
+    <button onclick="clearOrder()" class="clear">Siparişi Temizle</button>
+
+    <div class="order-list" id="orderList"></div>
+    <div class="total" id="totalAmount">Toplam: ₺0</div>
+  </div>
+
+  <script>
+    let orders = [];
+    const tableSelect = document.getElementById('tableNumber');
+    
+    // Sayfa yüklendiğinde localStorage'dan veri çek
+    window.onload = function() {
+      loadOrders();
+    };
+    
+    // Masa değiştiğinde verileri güncelle
+    tableSelect.addEventListener('change', function() {
+      loadOrders();
+    });
+
+    function addItem() {
+      const name = document.getElementById('productName').value;
+      const price = parseFloat(document.getElementById('productPrice').value);
+      
+      if (!name || isNaN(price)) {
+        alert("Lütfen geçerli bir ürün ve fiyat girin.");
+        return;
+      }
+      
+      orders.push({ name, price });
+      updateList();
+      saveOrders();
+      
+      // Form alanlarını temizle
+      document.getElementById('productName').value = '';
+      document.getElementById('productPrice').value = '';
+      document.getElementById('productName').focus();
+    }
+
+    function removeItem(index) {
+      orders.splice(index, 1);
+      updateList();
+      saveOrders();
+    }
+
+    function updateList() {
+      const list = document.getElementById('orderList');
+      const total = document.getElementById('totalAmount');
+      list.innerHTML = '';
+      let sum = 0;
+      
+      orders.forEach((item, index) => {
+        sum += item.price;
+        list.innerHTML += `
+          <div class="order-item">
+            <div class="item-info">
+              <span>${item.name}</span>
+              <span style="float: right;">₺${item.price.toFixed(2)}</span>
+            </div>
+            <button class="delete-btn" onclick="removeItem(${index})">Sil</button>
+          </div>`;
+      });
+      
+      total.textContent = `Toplam: ₺${sum.toFixed(2)}`;
+    }
+
+    function clearOrder() {
+      if (orders.length > 0) {
+        if (confirm('Tüm siparişi temizlemek istediğinizden emin misiniz?')) {
+          orders = [];
+          updateList();
+          saveOrders();
+        }
+      }
+    }
+    
+    function saveOrders() {
+      const tableNo = document.getElementById('tableNumber').value;
+      localStorage.setItem(`orders_${tableNo}`, JSON.stringify(orders));
+    }
+    
+    function loadOrders() {
+      const tableNo = document.getElementById('tableNumber').value;
+      const savedOrders = localStorage.getItem(`orders_${tableNo}`);
+      
+      if (savedOrders) {
+        orders = JSON.parse(savedOrders);
+      } else {
+        orders = [];
+      }
+      
+      updateList();
+    }
+  </script>
+</body>
+</html>
