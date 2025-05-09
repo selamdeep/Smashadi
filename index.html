@@ -16,6 +16,8 @@
     button.delete-btn { background: #e74c3c; padding: 5px 10px; margin-left: 8px; font-size: 12px; width: auto; }
     button.clear { background: #e67e22; }
     button.clear:hover { background: #d35400; }
+    button.print-btn { background: #3498db; }
+    button.print-btn:hover { background: #2980b9; }
     .tabs { display: flex; margin-bottom: 15px; flex-wrap: wrap; }
     .tab { flex: 1; text-align: center; padding: 10px; background: #eee; cursor: pointer; border-radius: 5px 5px 0 0; min-width: 80px; }
     .tab.active { background: #e74c3c; color: white; }
@@ -280,7 +282,7 @@
     
     <div class="order-actions">
       <button onclick="clearOrder()" class="clear">Siparişi Temizle</button>
-      <button onclick="saveOrder()">Siparişi Kaydet</button>
+      <button onclick="printOrder()" class="print-btn">Siparişi Yazdır</button>
     </div>
   </div>
 
@@ -376,16 +378,83 @@
       }
     }
     
-    function saveOrder() {
+    function printOrder() {
       if (orders.length === 0) {
         alert('Sipariş listesi boş!');
         return;
       }
       
       const tableNo = document.getElementById('tableNumber').value;
-      alert(`${tableNo} siparişi başarıyla kaydedildi!`);
       
-      // Gerçek bir sistemde burada siparişi sunucuya gönderebilirsiniz
+      // Yazdırma için bir popup pencere hazırla
+      let printWindow = window.open('', '_blank', 'height=600,width=800');
+      
+      // Yazdırma penceresi içeriğini oluştur
+      let printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Smash Burger - ${tableNo} Siparişi</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .header h2 { margin: 5px 0; }
+            .header p { margin: 5px 0; color: #666; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th, td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
+            th { border-top: 1px solid #ddd; }
+            .total { font-weight: bold; text-align: right; font-size: 18px; margin-top: 20px; }
+            .footer { margin-top: 30px; font-size: 14px; color: #666; text-align: center; }
+            @media print {
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>SMASH BURGER</h2>
+            <p>${tableNo}</p>
+            <p>${new Date().toLocaleString('tr-TR')}</p>
+          </div>
+          
+          <table>
+            <tr>
+              <th>Ürün</th>
+              <th style="text-align: right;">Fiyat</th>
+            </tr>`;
+      
+      // Siparişleri tabloya ekle
+      let total = 0;
+      orders.forEach(item => {
+        total += item.price;
+        printContent += `
+          <tr>
+            <td>${item.name}</td>
+            <td style="text-align: right;">₺${item.price.toFixed(2)}</td>
+          </tr>`;
+      });
+      
+      // Toplamı ve alt bilgiyi ekle
+      printContent += `
+          </table>
+          
+          <div class="total">Toplam: ₺${total.toFixed(2)}</div>
+          
+          <div class="footer">
+            <p>Afiyet olsun!</p>
+          </div>
+          
+          <div class="no-print" style="text-align: center; margin-top: 30px;">
+            <button onclick="window.print();" style="padding: 10px 20px; background: #3498db; color: white; border: none; cursor: pointer; font-size: 16px;">Yazdır</button>
+            <button onclick="window.close();" style="padding: 10px 20px; background: #e74c3c; color: white; border: none; cursor: pointer; font-size: 16px; margin-left: 10px;">Kapat</button>
+          </div>
+        </body>
+        </html>`;
+      
+      // İçeriği yazdırma penceresine aktar
+      printWindow.document.open();
+      printWindow.document.write(printContent);
+      printWindow.document.close();
     }
     
     function saveOrders() {
