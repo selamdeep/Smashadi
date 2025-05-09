@@ -10,14 +10,14 @@
     .header { text-align: center; margin-bottom: 20px; }
     .header h2 { color: #e74c3c; margin: 5px 0; }
     .header p { color: #7f8c8d; margin: 0; }
-    select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    select, button, input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
     button { background: #e74c3c; color: white; border: none; cursor: pointer; font-weight: bold; }
     button:hover { background: #c0392b; }
-    button.delete { background: #e74c3c; padding: 5px 10px; margin-left: 8px; }
+    button.delete-btn { background: #e74c3c; padding: 5px 10px; margin-left: 8px; font-size: 12px; width: auto; }
     button.clear { background: #e67e22; }
     button.clear:hover { background: #d35400; }
-    .tabs { display: flex; margin-bottom: 15px; }
-    .tab { flex: 1; text-align: center; padding: 10px; background: #eee; cursor: pointer; border-radius: 5px 5px 0 0; }
+    .tabs { display: flex; margin-bottom: 15px; flex-wrap: wrap; }
+    .tab { flex: 1; text-align: center; padding: 10px; background: #eee; cursor: pointer; border-radius: 5px 5px 0 0; min-width: 80px; }
     .tab.active { background: #e74c3c; color: white; }
     .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
     .product-item { background: #f9f9f9; padding: 10px; border-radius: 5px; cursor: pointer; border: 1px solid #ddd; text-align: center; transition: all 0.2s; }
@@ -34,6 +34,19 @@
     .order-actions { display: flex; gap: 10px; margin-top: 15px; }
     .order-actions button { flex: 1; }
     #tableNumber { font-size: 16px; font-weight: bold; }
+    .manual-entry { background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #eee; }
+    .manual-entry h3 { margin-top: 0; color: #e74c3c; font-size: 16px; }
+    .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+    .input-group input { margin: 0; }
+    .manual-add-btn { background: #2ecc71; }
+    .manual-add-btn:hover { background: #27ae60; }
+    .input-group input:first-child { flex: 2; }
+    .input-group input:last-child { flex: 1; }
+    @media (max-width: 480px) {
+      .product-grid { grid-template-columns: 1fr; }
+      .tabs { font-size: 14px; }
+      .tab { padding: 8px 5px; }
+    }
   </style>
 </head>
 <body>
@@ -54,6 +67,16 @@
       <option>Masa 7</option>
       <option>Masa 8</option>
     </select>
+
+    <!-- Manuel ürün ekleme bölümü -->
+    <div class="manual-entry">
+      <h3>Manuel Ürün Ekle</h3>
+      <div class="input-group">
+        <input type="text" id="manualProductName" placeholder="Ürün Adı">
+        <input type="number" id="manualProductPrice" placeholder="Fiyat">
+      </div>
+      <button onclick="addManualItem()" class="manual-add-btn">Ekle</button>
+    </div>
     
     <div class="tabs">
       <div class="tab active" onclick="showTab('burgers')">Burgerler</div>
@@ -271,6 +294,13 @@
       
       // İlk sekme aktif olsun
       showTab('burgers');
+      
+      // Enter tuşu ile manuel ürün ekleyebilme
+      document.getElementById("manualProductPrice").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+          addManualItem();
+        }
+      });
     };
     
     // Masa değiştiğinde verileri güncelle
@@ -282,6 +312,31 @@
       orders.push({ name, price });
       updateList();
       saveOrders();
+    }
+    
+    // Manuel ürün ekleme fonksiyonu
+    function addManualItem() {
+      const productName = document.getElementById('manualProductName').value.trim();
+      const productPrice = parseFloat(document.getElementById('manualProductPrice').value);
+      
+      if (!productName) {
+        alert('Lütfen ürün adı girin!');
+        return;
+      }
+      
+      if (isNaN(productPrice) || productPrice <= 0) {
+        alert('Lütfen geçerli bir fiyat girin!');
+        return;
+      }
+      
+      orders.push({ name: productName, price: productPrice });
+      updateList();
+      saveOrders();
+      
+      // Girdi alanlarını temizle
+      document.getElementById('manualProductName').value = '';
+      document.getElementById('manualProductPrice').value = '';
+      document.getElementById('manualProductName').focus();
     }
 
     function removeItem(index) {
